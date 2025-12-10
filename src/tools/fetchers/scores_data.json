@@ -1,0 +1,50 @@
+[
+  {
+    "game": {
+      "homeTeam": "Virginia Tech",
+      "awayTeam": "Clemson"
+    },
+    "score": {
+      "homeScore": 17,
+      "awayScore": 10
+    },
+    "date": "2025-01-01",
+    "time": "12:00:00",
+    "location": "Lane Stadium",
+    "status": "final",
+    "quarter": 4,
+    "timeRemaining": "00:00"
+  },
+  {
+    "game": {
+      "homeTeam": "Alabama",
+      "awayTeam": "Georgia"
+    },
+    "score": {
+      "homeScore": 28,
+      "awayScore": 24
+    },
+    "date": "2025-01-01",
+    "time": "15:30:00",
+    "location": "Bryant-Denny Stadium",
+    "status": "final",
+    "quarter": 4,
+    "timeRemaining": "00:00"
+  },
+  {
+    "game": {
+      "homeTeam": "Ohio State",
+      "awayTeam": "Michigan"
+    },
+    "score": {
+      "homeScore": 35,
+      "awayScore": 31
+    },
+    "date": "2025-01-01",
+    "time": "18:00:00",
+    "location": "Ohio Stadium",
+    "status": "final",
+    "quarter": 4,
+    "timeRemaining": "00:00"
+  }
+]
