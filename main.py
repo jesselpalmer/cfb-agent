@@ -7,9 +7,7 @@ def main():
 
     Creates an instance of CfbAgent and processes user queries.
     """
-    user_message = (
-        "Hi, can you give me the score for the game between Virginia Tech and Georgia Tech?"
-    )
+    user_message = "Hi, can you give me the scores on December 6th, 2025?"
 
     # Create the main agent
     agent = CfbAgent()
