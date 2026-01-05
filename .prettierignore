@@ -1,0 +1,23 @@
+# Python files - handled by Black
+*.py
+*.pyi
+*.pyc
+__pycache__/
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Other
+.git/
+node_modules/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
