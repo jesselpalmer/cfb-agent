@@ -7,3 +7,7 @@ parameters when instantiating classes.
 """
 
 DEFAULT_MODEL = "openai:gpt-5-nano"
+
+MODEL_MAPPING = {
+    "openai:gpt-5-nano": "gpt-4o-mini",
+}
