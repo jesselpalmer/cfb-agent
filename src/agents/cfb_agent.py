@@ -1,15 +1,23 @@
+"""
+Main College Football Agent module.
+
+This module provides the primary interface (CfbAgent) for the application.
+It acts as the entry point for user queries and coordinates the agent system.
+"""
+
 from src.agents.router_agent import RouterAgent
+from src.config import DEFAULT_MODEL
 
 
 class CfbAgent:
     """
     Main College Football Agent that handles user queries about college football.
-    
+
     This is the primary interface for the application. It uses a RouterAgent
     internally to route queries to the appropriate workflow.
     """
 
-    def __init__(self, router_model: str = "openai:gpt-5-nano"):
+    def __init__(self, router_model: str = DEFAULT_MODEL) -> None:
         """
         Initialize the College Football Agent.
 
