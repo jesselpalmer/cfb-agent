@@ -42,18 +42,12 @@ class ScoresAgent(BaseAgent):
             name="scores_agent",
         )
 
-    def handle(
-        self,
-        messages: list[dict[str, str]],
-        model: str | None = None,
-    ) -> str:
+    def handle(self, messages: list[dict[str, str]]) -> str:
         """
         Handle score-related queries.
 
         Args:
             messages: List of message dictionaries with 'role' and 'content'
-            model: Unused; kept for interface compatibility. Pass a model to the
-                constructor instead.
 
         Returns:
             String response from the agent
