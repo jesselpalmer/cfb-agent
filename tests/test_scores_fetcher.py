@@ -1,4 +1,10 @@
-from src.tools.fetchers.scores_fetcher import get_scores
+import datetime as dt
+
+import pytest
+from pydantic import ValidationError
+
+from src.models.score import Score
+from src.tools.fetchers.scores_fetcher import get_scores, get_scores_tool
 
 
 class TestGetScoresFiltering:
@@ -8,20 +14,19 @@ class TestGetScoresFiltering:
         """Test that without filters, all scores are returned."""
         results = get_scores()
         assert len(results) == 3
-        assert all("game" in score for score in results)
-        assert all("score" in score for score in results)
+        assert all(isinstance(score, Score) for score in results)
 
     def test_team_filter_home_team(self):
         """Test filtering by home team name."""
         results = get_scores(team="Virginia Tech")
         assert len(results) == 1
-        assert results[0]["game"]["homeTeam"] == "Virginia Tech"
+        assert results[0].game.home_team == "Virginia Tech"
 
     def test_team_filter_away_team(self):
         """Test filtering by away team name."""
         results = get_scores(team="Clemson")
         assert len(results) == 1
-        assert results[0]["game"]["awayTeam"] == "Clemson"
+        assert results[0].game.away_team == "Clemson"
 
     def test_team_filter_case_insensitive(self):
         """Test that team filtering is case-insensitive."""
@@ -32,13 +37,13 @@ class TestGetScoresFiltering:
         assert len(results_lower) == 1
         assert len(results_upper) == 1
         assert len(results_mixed) == 1
-        assert results_lower[0]["game"]["homeTeam"] == "Alabama"
+        assert results_lower[0].game.home_team == "Alabama"
 
     def test_team_filter_partial_match(self):
         """Test that team filtering supports partial matches."""
         results = get_scores(team="Virginia")
         assert len(results) == 1
-        assert "Virginia" in results[0]["game"]["homeTeam"]
+        assert "Virginia" in results[0].game.home_team
 
     def test_team_filter_no_match(self):
         """Test that filtering by non-existent team returns empty list."""
@@ -49,7 +54,7 @@ class TestGetScoresFiltering:
         """Test filtering by exact date match."""
         results = get_scores(date="2025-01-01")
         assert len(results) == 3
-        assert all(score["date"] == "2025-01-01" for score in results)
+        assert all(score.date == dt.date(2025, 1, 1) for score in results)
 
     def test_date_filter_no_match(self):
         """Test that filtering by non-existent date returns empty list."""
@@ -60,7 +65,7 @@ class TestGetScoresFiltering:
         """Test filtering by status."""
         results = get_scores(status="final")
         assert len(results) == 3
-        assert all(score["status"] == "final" for score in results)
+        assert all(score.status == "final" for score in results)
 
     def test_status_filter_case_insensitive(self):
         """Test that status filtering is case-insensitive."""
@@ -81,13 +86,13 @@ class TestGetScoresFiltering:
         """Test filtering by location."""
         results = get_scores(location="Lane Stadium")
         assert len(results) == 1
-        assert results[0]["location"] == "Lane Stadium"
+        assert results[0].location == "Lane Stadium"
 
     def test_location_filter_partial_match(self):
         """Test that location filtering supports partial matches."""
         results = get_scores(location="Stadium")
         assert len(results) == 3
-        assert all("Stadium" in score["location"] for score in results)
+        assert all("Stadium" in score.location for score in results)
 
     def test_location_filter_case_insensitive(self):
         """Test that location filtering is case-insensitive."""
@@ -98,7 +103,7 @@ class TestGetScoresFiltering:
         assert len(results_lower) == 1
         assert len(results_upper) == 1
         assert len(results_mixed) == 1
-        assert results_lower[0]["location"] == "Lane Stadium"
+        assert results_lower[0].location == "Lane Stadium"
 
     def test_location_filter_no_match(self):
         """Test that filtering by non-existent location returns empty list."""
@@ -109,15 +114,15 @@ class TestGetScoresFiltering:
         """Test combining multiple filters (team and date)."""
         results = get_scores(team="Virginia Tech", date="2025-01-01")
         assert len(results) == 1
-        assert results[0]["game"]["homeTeam"] == "Virginia Tech"
-        assert results[0]["date"] == "2025-01-01"
+        assert results[0].game.home_team == "Virginia Tech"
+        assert results[0].date == dt.date(2025, 1, 1)
 
     def test_multiple_filters_team_and_location(self):
         """Test combining team and location filters."""
         results = get_scores(team="Alabama", location="Bryant-Denny")
         assert len(results) == 1
-        assert results[0]["game"]["homeTeam"] == "Alabama"
-        assert "Bryant-Denny" in results[0]["location"]
+        assert results[0].game.home_team == "Alabama"
+        assert "Bryant-Denny" in results[0].location
 
     def test_multiple_filters_all_parameters(self):
         """Test combining all filter parameters."""
@@ -128,12 +133,40 @@ class TestGetScoresFiltering:
             location="Ohio Stadium",
         )
         assert len(results) == 1
-        assert results[0]["game"]["homeTeam"] == "Ohio State"
-        assert results[0]["date"] == "2025-01-01"
-        assert results[0]["status"] == "final"
-        assert results[0]["location"] == "Ohio Stadium"
+        assert results[0].game.home_team == "Ohio State"
+        assert results[0].date == dt.date(2025, 1, 1)
+        assert results[0].status == "final"
+        assert results[0].location == "Ohio Stadium"
 
     def test_multiple_filters_no_match(self):
         """Test that multiple filters with no matching results return empty list."""
         results = get_scores(team="Virginia Tech", date="2025-12-31")  # Wrong date
         assert len(results) == 0
+
+
+class TestGetScoresTool:
+    """The LangChain tool wrapper uses typed input and returns JSON-ready dicts."""
+
+    def test_returns_camel_case_json(self):
+        results = get_scores_tool.invoke({"team": "Alabama", "date": "2025-01-01"})
+        assert results == [
+            {
+                "game": {"homeTeam": "Alabama", "awayTeam": "Georgia"},
+                "score": {"homeScore": 28, "awayScore": 24},
+                "date": "2025-01-01",
+                "time": "15:30:00",
+                "location": "Bryant-Denny Stadium",
+                "status": "final",
+                "quarter": 4,
+                "timeRemaining": "00:00",
+            }
+        ]
+
+    def test_schema_lists_allowed_statuses(self):
+        schema = get_scores_tool.tool_call_schema.model_json_schema()
+        status = schema["properties"]["status"]["anyOf"][0]
+        assert status["enum"] == ["upcoming", "live", "final"]
+
+    def test_rejects_invalid_date(self):
+        with pytest.raises(ValidationError):
+            get_scores_tool.invoke({"date": "January 1"})

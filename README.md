@@ -82,6 +82,7 @@ uv lock --upgrade            # upgrade locked versions
 ## Project Layout
 
 - `src/agents/` holds the agents. Each feature, such as `scores/`, keeps its agents and workflow together in its own folder.
+- `src/models/` holds the Pydantic models for app data, such as `Score`.
 - `src/tools/` holds the tools agents can call, such as the data fetchers and their JSON data.
 - `tests/` holds the unit tests, which run offline.
 
@@ -90,12 +91,12 @@ uv lock --upgrade            # upgrade locked versions
 The system uses a multi-agent architecture to process user queries:
 
 - **CfbAgent**: Main interface for the application. Handles user queries and coordinates the agent system.
-- **RouterAgent**: Analyzes user queries and routes them to the appropriate workflow (used internally by CfbAgent).
+- **RouterAgent**: Analyzes user queries and routes them to the appropriate workflow (used internally by CfbAgent). The model picks the workflow through structured output, so the choice is always a known workflow name.
 - **ScoresAgent**: Handles score-related queries and uses tools to fetch game data.
 - **ScoresAnalyzerAgent**: Enhances responses with analysis and context.
 - **ScoresQAAgent**: Reviews and improves responses for quality assurance.
 - **Scores Workflow**: Orchestrates the multi-agent pipeline (Scores → Analyzer → QA).
 
-The system is organized using a feature-based structure where each feature (e.g., scores) contains its agents and workflow together. Score data is stored separately in JSON format for easy maintenance.
+The system is organized using a feature-based structure where each feature (e.g., scores) contains its agents and workflow together. Score data is stored separately in JSON format for easy maintenance, and every record is validated against the `Score` model when it loads.
 
 The system supports filtering game scores by team, date, status, and location.

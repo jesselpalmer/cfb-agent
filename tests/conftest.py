@@ -11,7 +11,11 @@ fake chat model.
 from unittest.mock import patch
 
 import pytest
-from langchain_core.language_models.fake_chat_models import FakeListChatModel
+from langchain_core.language_models.fake_chat_models import (
+    FakeListChatModel,
+    GenericFakeChatModel,
+)
+from langchain_core.messages import AIMessage
 
 from src.config import MODEL_ENV_VAR
 
@@ -37,6 +41,44 @@ def fake_chat_model():
 
     def _install(*responses: str):
         fake = FakeListChatModel(responses=list(responses) or ["ok"])
+        patcher = patch("src.agents.base.init_chat_model", return_value=fake)
+        patchers.append(patcher)
+        return patcher.start()
+
+    yield _install
+
+    for patcher in patchers:
+        patcher.stop()
+
+
+class _FakeToolCallingModel(GenericFakeChatModel):
+    """Fake model that accepts tools, so ``with_structured_output`` works."""
+
+    def bind_tools(self, tools, **kwargs):
+        return self
+
+
+@pytest.fixture
+def fake_structured_model():
+    """
+    Replace the chat model with one that answers with tool calls.
+
+    Call the fixture with the output schema and the arguments of each reply,
+    in order, for example
+    ``fake_structured_model(RouteDecision, {"workflow": "scores"})``. Arguments
+    that don't fit the schema exercise the parsing-error path.
+    """
+    patchers = []
+
+    def _install(schema: type, *replies: dict):
+        messages = iter(
+            AIMessage(
+                content="",
+                tool_calls=[{"name": schema.__name__, "args": args, "id": f"call_{i}"}],
+            )
+            for i, args in enumerate(replies)
+        )
+        fake = _FakeToolCallingModel(messages=messages)
         patcher = patch("src.agents.base.init_chat_model", return_value=fake)
         patchers.append(patcher)
         return patcher.start()

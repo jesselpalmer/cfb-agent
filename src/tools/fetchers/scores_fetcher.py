@@ -1,82 +1,93 @@
-import json
+import datetime as dt
 from pathlib import Path
 
 from langchain_core.tools import StructuredTool
+from pydantic import BaseModel, Field, TypeAdapter
+
+from src.models.score import GameStatus, Score
+
+SCORES_FILE = Path(__file__).parent / "scores_data.json"
+
+_scores_adapter = TypeAdapter(list[Score])
 
 
-def _load_scores_data() -> list[dict]:
+def load_scores(path: Path = SCORES_FILE) -> list[Score]:
     """
-    Load scores data from JSON file.
+    Load and validate score records from a JSON file.
 
-    Returns:
-        List of score dictionaries
+    Raises:
+        pydantic.ValidationError: If any record doesn't match ``Score``.
     """
-    # Get the directory where this file is located
-    current_dir = Path(__file__).parent
-    json_file = current_dir / "scores_data.json"
-
-    with open(json_file, "r") as f:
-        return json.load(f)
+    return _scores_adapter.validate_json(path.read_bytes())
 
 
-# Load scores data at module level
-_all_scores = _load_scores_data()
+# Load and validate scores data once, at import time.
+_all_scores = load_scores()
+
+
+class GetScoresInput(BaseModel):
+    """Filters the get_scores tool accepts. Every filter is optional."""
+
+    team: str | None = Field(
+        default=None,
+        description="Team name, matched against home or away team. "
+        "Case-insensitive partial match.",
+    )
+    date: dt.date | None = Field(
+        default=None, description="Game date in YYYY-MM-DD format."
+    )
+    status: GameStatus | None = Field(default=None, description="Game status.")
+    location: str | None = Field(
+        default=None,
+        description="Stadium or location name. Case-insensitive partial match.",
+    )
 
 
 def get_scores(
     team: str | None = None,
-    date: str | None = None,
+    date: dt.date | str | None = None,
     status: str | None = None,
     location: str | None = None,
-) -> list[dict]:
+) -> list[Score]:
     """
     Get a list of scores with optional filtering.
 
     Args:
-      team: Filter by team name (matches home or away team). Case-insensitive partial match.
-      date: Filter by date in YYYY-MM-DD format.
-      status: Filter by game status (e.g., "final", "live", "upcoming").
+      team: Filter by team name (matches home or away team). Case-insensitive
+        partial match.
+      date: Filter by date, as a ``date`` or a YYYY-MM-DD string.
+      status: Filter by game status ("final", "live", "upcoming").
+        Case-insensitive.
       location: Filter by location/stadium name. Case-insensitive partial match.
 
     Returns:
-      list: A list of dictionaries containing the scores matching the filters.
+      The ``Score`` records matching every filter given.
     """
-    all_scores = _all_scores
+    if isinstance(date, str):
+        date = dt.date.fromisoformat(date)
 
-    # Apply filters
-    filtered_scores = all_scores
+    def matches(score: Score) -> bool:
+        teams = f"{score.game.home_team}\n{score.game.away_team}".lower()
+        return (
+            (not team or team.lower() in teams)
+            and (not date or score.date == date)
+            and (not status or score.status == status.lower())
+            and (not location or location.lower() in score.location.lower())
+        )
 
-    if team:
-        filtered_scores = [
-            score
-            for score in filtered_scores
-            if team.lower() in score["game"]["homeTeam"].lower()
-            or team.lower() in score["game"]["awayTeam"].lower()
-        ]
-
-    if date:
-        filtered_scores = [score for score in filtered_scores if score["date"] == date]
-
-    if status:
-        filtered_scores = [
-            score
-            for score in filtered_scores
-            if score["status"].lower() == status.lower()
-        ]
-
-    if location:
-        filtered_scores = [
-            score
-            for score in filtered_scores
-            if location.lower() in score["location"].lower()
-        ]
-
-    return filtered_scores
+    return [score for score in _all_scores if matches(score)]
 
 
-# Create tool wrapper
+def _get_scores_for_tool(**filters) -> list[dict]:
+    """Run get_scores and serialize the results as camelCase JSON for the model."""
+    return [
+        score.model_dump(mode="json", by_alias=True) for score in get_scores(**filters)
+    ]
+
+
 get_scores_tool = StructuredTool.from_function(
-    func=get_scores,
+    func=_get_scores_for_tool,
     name="get_scores",
     description="Get college football game scores with optional filtering by team, date, status, or location. Returns a list of game results with scores, teams, dates, and game status.",
+    args_schema=GetScoresInput,
 )
