@@ -1,5 +1,6 @@
+from langchain_core.messages import HumanMessage, SystemMessage
+
 from src.agents.base import BaseAgent
-from langchain_core.messages import SystemMessage, HumanMessage
 
 
 class ScoresQAAgent(BaseAgent):
@@ -18,7 +19,7 @@ class ScoresQAAgent(BaseAgent):
         """
         super().__init__(model=model, tools=[])
 
-    def review(self, content: str, original_request: str = None) -> str:
+    def review(self, content: str, original_request: str | None = None) -> str:
         """
         Review and improve a response for quality.
 
