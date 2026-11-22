@@ -1,42 +1,20 @@
+import logging
+
+from langchain.agents import create_agent
+from langchain_core.messages import AIMessage
+
 from src.agents.base import BaseAgent
 from src.tools.fetchers.scores_fetcher import get_scores_tool
-from langchain.agents import create_openai_tools_agent, AgentExecutor
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.callbacks.stdout import StdOutCallbackHandler
-from typing import List, Dict, Union, Any, Optional
 
+logger = logging.getLogger(__name__)
 
-class SafeStdOutCallbackHandler(StdOutCallbackHandler):
-    """A callback handler that extends StdOutCallbackHandler and safely handles None values."""
+SYSTEM_PROMPT = """You are a helpful assistant that answers questions about college football game scores.
+You have access to a tool that can fetch game scores with various filters.
+Use the tool when you need to look up scores, then provide a clear and helpful answer to the user.
+Always be accurate and concise."""
 
-    def on_chain_start(
-        self,
-        serialized: Dict[str, Any],
-        inputs: Dict[str, Any],
-        *,
-        run_id: str,
-        parent_run_id: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        **kwargs: Any,
-    ) -> None:
-        """Handle chain start, safely handling None metadata."""
-        try:
-            # Ensure metadata is a dict before calling parent
-            safe_metadata = metadata if metadata is not None else {}
-            super().on_chain_start(
-                serialized,
-                inputs,
-                run_id=run_id,
-                parent_run_id=parent_run_id,
-                tags=tags,
-                metadata=safe_metadata,
-                **kwargs,
-            )
-        except (AttributeError, TypeError) as e:
-            # Silently ignore callback errors - they're non-critical
-            # The error is usually "'NoneType' object has no attribute 'get'"
-            pass
+# Roles from the incoming conversation that are forwarded to the agent.
+_CONVERSATION_ROLES = {"user", "assistant"}
 
 
 class ScoresAgent(BaseAgent):
@@ -44,7 +22,8 @@ class ScoresAgent(BaseAgent):
     Agent for handling score-related queries.
 
     This agent can answer questions about game scores, filter scores by team,
-    date, status, or location using the get_scores tool.
+    date, status, or location using the get_scores tool. It runs on LangChain's
+    ``create_agent``, which builds a LangGraph tool-calling loop.
     """
 
     def __init__(self, model: str = "gpt-4o-mini"):
@@ -55,61 +34,44 @@ class ScoresAgent(BaseAgent):
             model: The model to use for chat completions
         """
         super().__init__(model=model, tools=[get_scores_tool])
-
-        # Create the prompt template for the agent
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                (
-                    "system",
-                    """You are a helpful assistant that answers questions about college football game scores.
-            You have access to a tool that can fetch game scores with various filters.
-            Use the tool when you need to look up scores, then provide a clear and helpful answer to the user.
-            Always be accurate and concise.""",
-                ),
-                MessagesPlaceholder(variable_name="chat_history"),
-                ("human", "{input}"),
-                MessagesPlaceholder(variable_name="agent_scratchpad"),
-            ]
-        )
-
-        # Create the agent with tools
-        agent = create_openai_tools_agent(self.llm, self.tools, prompt)
-
-        # Create the agent executor with a safe callback handler
-        # Use custom callback handler to avoid NoneType errors while keeping verbose output
-        self.agent_executor = AgentExecutor(
-            agent=agent,
+        self.agent = create_agent(
+            model=self.llm,
             tools=self.tools,
-            verbose=True,  # Keep verbose for debugging
-            callbacks=[SafeStdOutCallbackHandler()],  # Use safe callback handler
+            system_prompt=SYSTEM_PROMPT,
+            name="scores_agent",
         )
 
     def handle(
         self,
-        messages: List[Dict[str, str]],
-        model: str = None,
+        messages: list[dict[str, str]],
+        model: str | None = None,
     ) -> str:
         """
         Handle score-related queries.
 
         Args:
             messages: List of message dictionaries with 'role' and 'content'
-            model: Optional model override (not used in agent executor)
+            model: Unused; kept for interface compatibility. Pass a model to the
+                constructor instead.
 
         Returns:
             String response from the agent
         """
-        # Extract the user's input from messages
-        # Find the last user message
-        user_input = ""
-        for msg in reversed(messages):
-            if msg.get("role") == "user":
-                user_input = msg.get("content", "")
-                break
-
-        if not user_input:
+        conversation = [
+            {"role": msg["role"], "content": msg.get("content", "")}
+            for msg in messages
+            if msg.get("role") in _CONVERSATION_ROLES
+        ]
+        if not any(m["role"] == "user" and m["content"] for m in conversation):
             return "I didn't receive a valid user message."
 
-        # Run the agent with chat_history (empty for now, but required by prompt)
-        result = self.agent_executor.invoke({"input": user_input, "chat_history": []})
-        return result.get("output", "I couldn't generate a response.")
+        result = self.agent.invoke({"messages": conversation})
+
+        for msg in result["messages"]:
+            for call in getattr(msg, "tool_calls", None) or []:
+                logger.debug("Tool call %s(%s)", call["name"], call["args"])
+
+        final = result["messages"][-1]
+        if isinstance(final, AIMessage) and final.text:
+            return str(final.text)
+        return "I couldn't generate a response."
