@@ -4,18 +4,21 @@ An agentic program that uses AI agents to answer questions about college footbal
 
 ## Setup
 
-1. **Create a virtual environment:**
+This project uses [uv](https://docs.astral.sh/uv/) to manage Python and dependencies. It requires Python 3.10 or newer.
+
+1. **Install uv** (if you don't have it):
 
    ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
 2. **Install dependencies:**
 
    ```bash
-   pip install -r requirements.txt
+   uv sync
    ```
+
+   This creates a `.venv` and installs the locked dependencies from `uv.lock`, including the dev tools (pytest and Ruff).
 
 3. **Create a `.env` file:**
 
@@ -28,7 +31,7 @@ An agentic program that uses AI agents to answer questions about college footbal
 ## Running the Application
 
 ```bash
-python main.py
+uv run python main.py
 ```
 
 ## Running Tests
@@ -36,13 +39,31 @@ python main.py
 Run all tests:
 
 ```bash
-pytest tests/ -v
+uv run pytest -v
 ```
 
 Run a specific test file:
 
 ```bash
-pytest tests/test_scores_fetcher.py -v
+uv run pytest tests/test_scores_fetcher.py -v
+```
+
+## Linting and Formatting
+
+[Ruff](https://docs.astral.sh/ruff/) handles both linting and formatting:
+
+```bash
+uv run ruff check .          # lint
+uv run ruff check --fix .    # lint and apply safe fixes
+uv run ruff format .         # format
+```
+
+## Managing Dependencies
+
+```bash
+uv add <package>             # add a runtime dependency
+uv add --dev <package>       # add a dev dependency
+uv lock --upgrade            # upgrade locked versions
 ```
 
 ## Directory Structure
@@ -50,8 +71,8 @@ pytest tests/test_scores_fetcher.py -v
 ```bash
 cfb-agent/
 ├── main.py                               # Application entry point
-├── requirements.txt                      # Python dependencies
-├── pytest.ini                            # Pytest configuration
+├── pyproject.toml                        # Project metadata, dependencies, Ruff and pytest config
+├── uv.lock                               # Locked dependency versions
 ├── README.md                             # This file
 ├── src/
 │   ├── agents/                           # AI agents
