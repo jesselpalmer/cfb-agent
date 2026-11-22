@@ -26,12 +26,13 @@ class ScoresAgent(BaseAgent):
     ``create_agent``, which builds a LangGraph tool-calling loop.
     """
 
-    def __init__(self, model: str = "gpt-4o-mini"):
+    def __init__(self, model: str | None = None):
         """
         Initialize the score agent with the get_scores tool.
 
         Args:
-            model: The model to use for chat completions
+            model: The model to use for chat completions. Defaults to the
+                configured model in src/config.py.
         """
         super().__init__(model=model, tools=[get_scores_tool])
         self.agent = create_agent(
