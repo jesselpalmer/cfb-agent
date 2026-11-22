@@ -1,4 +1,4 @@
-# Python files - handled by Black
+# Python files - handled by Ruff
 *.py
 *.pyi
 *.pyc
