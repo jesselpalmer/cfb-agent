@@ -1,3 +1,5 @@
+from typing import Optional
+
 from src.agents.base import BaseAgent
 from src.agents.scores.scores_workflow import scores_workflow
 from langchain_core.messages import SystemMessage, HumanMessage
@@ -13,12 +15,13 @@ class RouterAgent(BaseAgent):
     workflows.
     """
 
-    def __init__(self, model: str = "openai:gpt-5-nano"):
+    def __init__(self, model: Optional[str] = None):
         """
         Initialize the router agent.
 
         Args:
-            model: The model to use for chat completions
+            model: The model to use for chat completions. Defaults to the
+                configured model in src/config.py.
         """
         super().__init__(model=model, tools=[])
 

@@ -5,8 +5,9 @@ This module provides the primary interface (CfbAgent) for the application.
 It acts as the entry point for user queries and coordinates the agent system.
 """
 
+from typing import Optional
+
 from src.agents.router_agent import RouterAgent
-from src.config import DEFAULT_MODEL
 
 
 class CfbAgent:
@@ -17,12 +18,13 @@ class CfbAgent:
     internally to route queries to the appropriate workflow.
     """
 
-    def __init__(self, router_model: str = DEFAULT_MODEL) -> None:
+    def __init__(self, router_model: Optional[str] = None) -> None:
         """
         Initialize the College Football Agent.
 
         Args:
-            router_model: The model to use for the router agent
+            router_model: The model to use for the router agent. Defaults to the
+                configured model in src/config.py.
         """
         self.router = RouterAgent(model=router_model)
 

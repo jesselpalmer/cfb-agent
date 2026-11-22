@@ -1,7 +1,10 @@
+from typing import List, Optional, Union
+
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
-from typing import Optional, List, Union
+from langchain.chat_models import init_chat_model
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+
+from src.config import DEFAULT_TEMPERATURE, get_default_model
 
 # Load environment variables (API keys, etc.) from .env file
 load_dotenv()
@@ -17,29 +20,23 @@ class BaseAgent:
 
     def __init__(
         self,
-        model: str = "gpt-4o-mini",
-        temperature: float = 1.0,
+        model: Optional[str] = None,
+        temperature: float = DEFAULT_TEMPERATURE,
         tools: Optional[List] = None,
     ):
         """
         Initialize the base agent.
 
         Args:
-            model: The OpenAI model to use (e.g., "gpt-4o-mini", "gpt-4o")
+            model: Model in LangChain's "provider:model" format
+                (e.g., "openai:gpt-5-nano"). Defaults to the configured model
+                in src/config.py.
             temperature: Controls randomness (0-2, higher = more random)
             tools: List of tools the agent can use
         """
-        # Map aisuite model format to OpenAI model names
-        model_mapping = {
-            "openai:gpt-5-nano": "gpt-4o-mini",  # Fallback to closest available
-        }
-        actual_model = model_mapping.get(model, model)
-        self.model = actual_model  # Store model name for later use
-
-        self.llm = ChatOpenAI(
-            model=actual_model,
-            temperature=temperature,
-        )
+        self.model = model or get_default_model()
+        self.temperature = temperature
+        self.llm = init_chat_model(self.model, temperature=temperature)
         self.tools = tools or []
 
     def chat(
@@ -78,10 +75,10 @@ class BaseAgent:
         # Create LLM instance with optional overrides
         llm = self.llm
         if model or temperature is not None:
-            llm = ChatOpenAI(
-                model=model or self.model,
+            llm = init_chat_model(
+                model or self.model,
                 temperature=(
-                    temperature if temperature is not None else self.llm.temperature
+                    temperature if temperature is not None else self.temperature
                 ),
             )
 
