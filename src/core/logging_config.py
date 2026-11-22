@@ -15,9 +15,6 @@ _NOISY_LOGGERS = [
     "httpx",
     "urllib3",
     "openai",
-    "sentence_transformers",
-    "transformers",
-    "huggingface_hub",
 ]
 
 
