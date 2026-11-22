@@ -1,5 +1,3 @@
-from typing import Optional
-
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.agents.base import BaseAgent
@@ -12,7 +10,7 @@ class ScoresAnalyzerAgent(BaseAgent):
     Takes raw content and enhances it with analysis, context, and insights.
     """
 
-    def __init__(self, model: Optional[str] = None):
+    def __init__(self, model: str | None = None):
         """
         Initialize the analyzer agent.
 

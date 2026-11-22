@@ -1,5 +1,3 @@
-from typing import List, Optional, Union
-
 from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
@@ -20,9 +18,9 @@ class BaseAgent:
 
     def __init__(
         self,
-        model: Optional[str] = None,
+        model: str | None = None,
         temperature: float = DEFAULT_TEMPERATURE,
-        tools: Optional[List] = None,
+        tools: list | None = None,
     ):
         """
         Initialize the base agent.
@@ -41,9 +39,9 @@ class BaseAgent:
 
     def chat(
         self,
-        messages: List[Union[dict, HumanMessage, SystemMessage, AIMessage]],
-        model: Optional[str] = None,
-        temperature: Optional[float] = None,
+        messages: list[dict | HumanMessage | SystemMessage | AIMessage],
+        model: str | None = None,
+        temperature: float | None = None,
     ):
         """
         Make a chat completion request.
