@@ -1,10 +1,10 @@
 import json
 from pathlib import Path
-from typing import Optional, List, Dict
+
 from langchain_core.tools import StructuredTool
 
 
-def _load_scores_data() -> List[Dict]:
+def _load_scores_data() -> list[dict]:
     """
     Load scores data from JSON file.
 
@@ -14,7 +14,7 @@ def _load_scores_data() -> List[Dict]:
     # Get the directory where this file is located
     current_dir = Path(__file__).parent
     json_file = current_dir / "scores_data.json"
-    
+
     with open(json_file, "r") as f:
         return json.load(f)
 
@@ -24,11 +24,11 @@ _all_scores = _load_scores_data()
 
 
 def get_scores(
-    team: Optional[str] = None,
-    date: Optional[str] = None,
-    status: Optional[str] = None,
-    location: Optional[str] = None,
-) -> List[Dict]:
+    team: str | None = None,
+    date: str | None = None,
+    status: str | None = None,
+    location: str | None = None,
+) -> list[dict]:
     """
     Get a list of scores with optional filtering.
 
