@@ -4,7 +4,7 @@ An agentic program that uses AI agents to answer questions about college footbal
 
 ## Setup
 
-This project uses [uv](https://docs.astral.sh/uv/) to manage Python and dependencies. It requires Python 3.10 or newer.
+This project uses [uv](https://docs.astral.sh/uv/) to manage Python and dependencies. It requires Python 3.11 or newer.
 
 1. **Install uv** (if you don't have it):
 
