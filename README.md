@@ -79,31 +79,11 @@ uv add --dev <package>       # add a dev dependency
 uv lock --upgrade            # upgrade locked versions
 ```
 
-## Directory Structure
+## Project Layout
 
-```bash
-cfb-agent/
-├── main.py                               # Application entry point
-├── pyproject.toml                        # Project metadata, dependencies, Ruff and pytest config
-├── uv.lock                               # Locked dependency versions
-├── README.md                             # This file
-├── src/
-│   ├── agents/                           # AI agents
-│   │   ├── base.py                       # Base agent class
-│   │   ├── cfb_agent.py                  # Main College Football Agent interface
-│   │   ├── router_agent.py               # Router agent for workflow selection
-│   │   └── scores/                       # Scores feature (agents + workflow)
-│   │       ├── scores_agent.py           # Score fetching agent
-│   │       ├── scores_analyzer_agent.py  # Analysis enhancement agent
-│   │       ├── scores_qa_agent.py        # Quality assurance agent
-│   │       └── scores_workflow.py        # Scores workflow orchestrator
-│   └── tools/                            # Tools agents can use
-│       └── fetchers/                     # Data fetching tools
-│           ├── scores_fetcher.py         # Score fetching with filtering
-│           └── scores_data.json          # Score data file
-└── tests/                                # Unit tests
-    └── test_scores_fetcher.py
-```
+- `src/agents/` holds the agents. Each feature, such as `scores/`, keeps its agents and workflow together in its own folder.
+- `src/tools/` holds the tools agents can call, such as the data fetchers and their JSON data.
+- `tests/` holds the unit tests, which run offline.
 
 ## Architecture
 
