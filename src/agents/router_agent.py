@@ -37,21 +37,8 @@ class RouterAgent(BaseAgent):
         # Available workflows
         workflows = {
             "scores": {
-                "name": "scores_workflow",
                 "function": scores_workflow,
                 "description": "Handles queries about game scores, results, and score-related information",
-                "keywords": [
-                    "score",
-                    "scores",
-                    "result",
-                    "results",
-                    "game",
-                    "games",
-                    "won",
-                    "lost",
-                    "beat",
-                    "defeated",
-                ],
             },
             # Future workflows can be added here:
             # "standings": {...},
