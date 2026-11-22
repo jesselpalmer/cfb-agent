@@ -28,9 +28,6 @@ dist/
 .coverage.*
 htmlcov/
 
-# pyenv
-.python-version
-
 # IDEs
 .vscode/
 .idea/
