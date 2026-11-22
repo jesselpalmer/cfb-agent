@@ -1,3 +1,5 @@
+from typing import Optional
+
 from src.agents.base import BaseAgent
 from langchain_core.messages import SystemMessage, HumanMessage
 
@@ -9,12 +11,13 @@ class ScoresAnalyzerAgent(BaseAgent):
     Takes raw content and enhances it with analysis, context, and insights.
     """
 
-    def __init__(self, model: str = "gpt-4o-mini"):
+    def __init__(self, model: Optional[str] = None):
         """
         Initialize the analyzer agent.
 
         Args:
-            model: The model to use for chat completions
+            model: The model to use for chat completions. Defaults to the
+                configured model in src/config.py.
         """
         super().__init__(model=model, tools=[])
 

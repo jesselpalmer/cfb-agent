@@ -25,6 +25,16 @@ An agentic program that uses AI agents to answer questions about college footbal
    OPENAI_API_KEY=your_api_key_here
    ```
 
+## Configuring the Model
+
+Every agent uses the model set in `src/config.py`, which defaults to
+`openai:gpt-5-nano`. Models use LangChain's `provider:model` format. To use a
+different model without editing code, set `CFB_AGENT_MODEL` in your `.env`:
+
+```bash
+CFB_AGENT_MODEL=openai:gpt-5-mini
+```
+
 ## Running the Application
 
 ```bash
@@ -32,6 +42,9 @@ python main.py
 ```
 
 ## Running Tests
+
+Tests run offline. They use a dummy API key and LangChain's fake chat model,
+so no OpenAI key or network access is needed.
 
 Run all tests:
 
