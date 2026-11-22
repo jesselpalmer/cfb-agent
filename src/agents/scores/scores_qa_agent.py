@@ -1,7 +1,8 @@
 from typing import Optional
 
+from langchain_core.messages import HumanMessage, SystemMessage
+
 from src.agents.base import BaseAgent
-from langchain_core.messages import SystemMessage, HumanMessage
 
 
 class ScoresQAAgent(BaseAgent):
