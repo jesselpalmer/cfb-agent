@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
-from typing import Optional, List, Union
 
 # Load environment variables (API keys, etc.) from .env file
 load_dotenv()
@@ -19,7 +18,7 @@ class BaseAgent:
         self,
         model: str = "gpt-4o-mini",
         temperature: float = 1.0,
-        tools: Optional[List] = None,
+        tools: list | None = None,
     ):
         """
         Initialize the base agent.
@@ -44,9 +43,9 @@ class BaseAgent:
 
     def chat(
         self,
-        messages: List[Union[dict, HumanMessage, SystemMessage, AIMessage]],
-        model: Optional[str] = None,
-        temperature: Optional[float] = None,
+        messages: list[dict | HumanMessage | SystemMessage | AIMessage],
+        model: str | None = None,
+        temperature: float | None = None,
     ):
         """
         Make a chat completion request.

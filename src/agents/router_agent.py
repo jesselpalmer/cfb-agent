@@ -1,6 +1,7 @@
+from langchain_core.messages import HumanMessage, SystemMessage
+
 from src.agents.base import BaseAgent
 from src.agents.scores.scores_workflow import scores_workflow
-from langchain_core.messages import SystemMessage, HumanMessage
 
 
 class RouterAgent(BaseAgent):
