@@ -6,6 +6,7 @@ the agent system.
 """
 
 from unittest.mock import Mock, patch
+
 from src.agents.cfb_agent import CfbAgent
 from src.agents.router_agent import RouterAgent
 from src.config import DEFAULT_MODEL, MODEL_MAPPING
