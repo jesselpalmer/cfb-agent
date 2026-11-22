@@ -1,5 +1,3 @@
-from typing import Optional
-
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.agents.base import BaseAgent
@@ -12,7 +10,7 @@ class ScoresQAAgent(BaseAgent):
     Reviews content for accuracy, clarity, and completeness.
     """
 
-    def __init__(self, model: Optional[str] = None):
+    def __init__(self, model: str | None = None):
         """
         Initialize the QA agent.
 
@@ -22,7 +20,7 @@ class ScoresQAAgent(BaseAgent):
         """
         super().__init__(model=model, tools=[])
 
-    def review(self, content: str, original_request: str = None) -> str:
+    def review(self, content: str, original_request: str | None = None) -> str:
         """
         Review and improve a response for quality.
 

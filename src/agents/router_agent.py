@@ -1,5 +1,3 @@
-from typing import Optional
-
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.agents.base import BaseAgent
@@ -16,7 +14,7 @@ class RouterAgent(BaseAgent):
     workflows.
     """
 
-    def __init__(self, model: Optional[str] = None):
+    def __init__(self, model: str | None = None):
         """
         Initialize the router agent.
 
